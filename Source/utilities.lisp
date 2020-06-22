@@ -8,13 +8,14 @@
   (declare (ignore element-type))
   `sequence)
 
-;; (deftype sequence* (element-type)
-;;   (let ((name (symbolicate element-type '-seq-p)))
-;;     (eval-when (:compile-toplevel :load-toplevel :execute)
-;;       (compile name
-;;                `(lambda (seq)
-;;                   (every (rcurry #'typep ',element-type) seq))))
-;;     `(and sequence (satisfies ,name))))
+#+ (or)
+(deftype sequence* (element-type)
+  (let ((name (symbolicate element-type '-seq-p)))
+    (eval-when (:compile-toplevel :load-toplevel :execute)
+      (compile name
+               `(lambda (seq)
+                  (every (rcurry #'typep ',element-type) seq))))
+    `(and sequence (satisfies ,name))))
 
 (deftype note ()
   ;; sharp/flat pairs are equivalent to each other.
@@ -58,3 +59,11 @@
 
 (defun frequency* (note-on)
   (* 440 (expt 2 (/ (- note-on 69) 12))))
+
+;;; Note frequency is only part of the story. Musical notes have also
+;;; a duration and may be grouped with beams. Moreover there are rests
+;;; (which also have duration and beams) and ghost notes. Notes may
+;;; have accidentals, have relationships between each other etc. This
+;;; list of musical symbols gives an idea of possibilities:
+;;;
+;;; https://en.wikipedia.org/wiki/List_of_musical_symbols
