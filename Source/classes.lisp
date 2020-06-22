@@ -56,13 +56,22 @@
     :type (sequence* staff)
     :initarg :staves)
    ;; STUB internal representation of the music.
-   (buffer     :type (sequence* speck))))
+   (buffer     :type (sequence* speck)))
+  (:default-initargs :name "(a part)"
+                     :instrument nil
+                     :staves nil))
 
 (defclass parts-view ()
-  ((parts
+  ((name
+    :type string
+    :initarg :name
+    :reader name)
+   (parts
     :type (sequence* part)
     :initarg :parts
-    :reader parts)))
+    :reader parts))
+  (:default-initargs :name "(a view)"
+                     :parts nil))
 
 (defclass instrument ()
   ((name :type string
@@ -70,7 +79,9 @@
          :reader name)
    (key  :type note
          :initarg :key
-         :reader key)))
+         :reader key))
+  (:default-initargs :name "(an instrument)"
+                     :key :c))
 
 (defclass staff ()
   ((type
@@ -84,9 +95,8 @@
   ;; Clef and key signature usually appear at the beginning of the
   ;; piece but they may be appear later as well (i.e to cancel the
   ;; previous key signature), so they are not part of the staff.
-  (:default-initargs
-   :staff-type :five-line
-   :name "default"))
+  (:default-initargs :name "default"
+                     :staff-type :five-line))
 
 ;;; That's how I imagine the clef representation. It is commented out
 ;;; because it is not needed right now.
