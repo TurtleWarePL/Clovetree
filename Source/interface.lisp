@@ -1,35 +1,37 @@
 (in-package #:clovetree-implementation)
 
 (defclass song-info-pane (clim:application-pane) ()
-  (:default-initargs :width 400 :height 600))
+  (:default-initargs :text-margins '(:left (:absolute 15)
+                                     :top  (:absolute 10))))
 
 (defclass song-main-pane (clim:application-pane) ()
-  (:default-initargs :width 800))
+  (:default-initargs :text-margins '(:left (:absolute 15)
+                                     :top  (:absolute 10)
+                                     :right (:absolute 770))))
 
 (clim:define-application-frame clovetree ()
   ((songs :initarg :songs :accessor songs)
    (current-song :accessor current-song)
    (parts-object :accessor parts-object))
-  (:geometry :width 1080 :height 600)
+  (:geometry :width 1200 :height 800)
   (:menu-bar menubar-command-table)
+  (:pointer-documentation t)
   (:panes (app song-main-pane :display-function #'display)
           (int :interactor)
-          (tab song-info-pane :display-function #'display
-                              :text-margins '(:left (:absolute 15)
-                                              :top  (:absolute 10))))
+          (tab song-info-pane :display-function #'display))
   (:layouts (advanced
              (clim:horizontally ()
-               tab
-               (clim:make-pane 'clime:box-adjuster-gadget)
-               (clim:vertically ()
-                 (3/5 app)
-                 (clim:make-pane 'clime:box-adjuster-gadget)
-                 (2/5 int))))
+               (400 tab)
+               ;(clim:make-pane 'clime:box-adjuster-gadget)
+               (800 (clim:vertically ()
+                      (600 app)
+                      ;(clim:make-pane 'clime:box-adjuster-gadget)
+                      (200 int)))))
             (simple
-             (clim:horizontally ()
-               (1/3 tab)
-               (clim:make-pane 'clime:box-adjuster-gadget)
-               (2/3 app)))))
+             (clim:horizontally (:height 800)
+               (400 tab)
+               ;(clim:make-pane 'clime:box-adjuster-gadget)
+               (800 app)))))
 
 (defmethod initialize-instance :after ((frame clovetree) &key songs)
   (if songs
@@ -62,35 +64,27 @@
 
 (define-clovetree-command (com-new-song :name t)
     ()
-  (let (title composer lyrics)
-    ;; Doesn't work due to McCLIM bug       vvvvvvvvvvvvvvvv
-    (clim:accepting-values (t :own-window '(:left 15 :top 10)
-                              :align-prompts t)
-      (setf title    (clim:accept 'string :prompt "Song title"
-                                          :default "(Untitled)"
-                                          :display-default nil))
-      (setf composer (clim:accept 'string :prompt "Composer"
-                                          :default "(Unknown)"
-                                          :insert-default t))
-      (setf lyrics   (clim:accept 'string :prompt "Lyrics author"))
-      #+ (or)
-      (clim:accept 'local-time:timestamp :prompt "Publishing date"))
-    (let ((frame clim:*application-frame*)
-          (song (make-instance 'song :title title
-                                     :composer composer
-                                     :lyrics-author lyrics)))
-      (push song (songs frame))
-      (setf (current-song frame) song))))
+  (let ((frame clim:*application-frame*)
+        (song (make-instance 'song :title nil
+                                   :composer nil
+                                   :lyrics-author nil
+                                   :publishing-date nil)))
+    (push song (songs frame))
+    (setf (current-song frame) song)))
 
+;;; Normally we'd have path as an argument for the command, but the
+;;; prompt is erased when in the parts-view-view window. McCLIM bug.
 (define-clovetree-command (com-load-song :name t)
-    ((path pathname))
-  (declare (ignore path))
-  (format *standard-input* "Implement me!"))
+    ()
+  (let ((path (clim:accept 'pathname :prompt "Song pathname")))
+    (format *standard-input* "Implement me ~s!" path)))
 
+;;; Normally we'd have arguments as arguments for the command, but the
+;;; prompt is erased when in the parts-view-view window. McCLIM bug.
 (define-clovetree-command (com-save-song :name t)
-    ((song song) (path pathname))
-  (declare (ignore song path))
-  (format *standard-input* "Implement me!"))
+    ()
+  (let ((path (clim:accept 'pathname :prompt "Pathname")))
+    (format *standard-input* "Implement me! ~s~%" path)))
 
 (define-clovetree-command (com-quit :name t)
     ()
@@ -121,6 +115,16 @@
     ((object t))
   (setf (parts-object clim:*application-frame*) object))
 
+(macrolet ((change-song-command (what)
+             (let ((name (alexandria:symbolicate 'com-change-song- what)))
+               `(define-clovetree-command (,name :name t)
+                    ((object song) (new-value string))
+                  (setf (,what object) new-value)))))
+  (change-song-command title)
+  (change-song-command composer)
+  (change-song-command lyrics-author)
+  (change-song-command publishing-date))
+
 
 ;;; Menu
 (clim:make-command-table 'file-command-table
@@ -140,9 +144,25 @@
 
 ;;; Translators
 (clim:define-presentation-to-command-translator tr-show-parts
-    (parts-view-oid com-show-parts clovetree)
+    (parts-view-oid com-show-parts clovetree
+                    :documentation "Show parts")
     (object)
   (list object))
+
+(macrolet ((change-song-translator (ptype what doc prompt)
+             (let ((cmd (alexandria:symbolicate 'com-change-song- what))
+                   (name (alexandria:symbolicate 'tr-change-song- what)))
+               `(clim:define-presentation-to-command-translator ,name
+                    (,ptype ,cmd clovetree :documentation ,doc :gesture nil)
+                    (object)
+                  (list object
+                        (clim:accept 'string :prompt ,prompt
+                                     :delimiter-gestures '(:enter)))))))
+  (change-song-translator song-title title "Change song title" "Title")
+  (change-song-translator song-composer composer "Change song composer" "Composer")
+  (change-song-translator song-lyrics lyrics-author "Change song lyrics author" "Lyrics author")
+  (change-song-translator song-date publishing-date "Change song publishing data" "Publishing date"))
+
 
 
 ;;; Display methods
@@ -158,8 +178,9 @@
     (clim:present object
                   (clim:presentation-type-of object)
                   :stream stream
-                  :view +song-parts-view-view+)
-    (princ "La la la." stream)))
+                  :view +song-parts-view-view+
+                  :sensitive nil)
+    (princ "La la la.~%" stream)))
 
 
 (defun run (&rest args &key songs new-process)

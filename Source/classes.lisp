@@ -16,7 +16,7 @@
     :initarg :lyrics-author
     :accessor lyrics-author)
    (publishing-date
-    :type (or null local-time:timestamp)
+    :type (or null string)
     :initarg :publishing-date
     :accessor publishing-date))
   (:default-initargs
@@ -54,7 +54,8 @@
    (staves
     ;:type hash-table
     :type (sequence* staff)
-    :initarg :staves)
+    :initarg :staves
+    :accessor staves)
    ;; STUB internal representation of the music.
    (buffer     :type (sequence* speck)))
   (:default-initargs :name "(a part)"

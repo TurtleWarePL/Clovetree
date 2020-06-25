@@ -20,29 +20,36 @@
 (defconstant +song-parts-view-view+  (make-instance 'song-parts-view-view))
 
 
-;;; Presentations
+;;; Presentation types with CLOS classes
 (clim:define-presentation-type instrument ())
 (clim:define-presentation-type part ())
 (clim:define-presentation-type parts-view ())
 
-(clim:define-presentation-type-abbreviation parts-view-oid ()
-  `(or part parts-view))
+;;; Presentation types without CLOS classes
+(clim:define-presentation-type song-title    ())
+(clim:define-presentation-type song-composer ())
+(clim:define-presentation-type song-lyrics   ())
+(clim:define-presentation-type song-date     ())
 
 #+ (or) ;; That would be cool if it did work.
 (clim:define-presentation-type parts-view-oid ()
   :inherit-from `(or part parts-view))
 
+;;; Presentation type abbreviations
+(clim:define-presentation-type-abbreviation parts-view-oid ()
+  `(or part parts-view))
+
 
 ;;; Presentation methods
 (clim:define-presentation-method clim:present
     ((object song) (type song) stream (view song-information-view) &key)
-  (flet ((show-field (name value)
-           (when value
+  (flet ((show-field (name value ptype)
+           (clim:with-output-as-presentation (stream object ptype :single-box t)
              (clim:with-text-face (stream :bold)
                (format stream "~a: " name))
              (clim:with-text-face (stream :italic)
-               (princ value stream))
-             (terpri stream)))
+               (princ (or value "(empty)") stream)))
+           (terpri stream))
          (list-group (name objects presentation-type)
            (clim:with-text-face (stream :bold)
              (format stream "~a~%" name))
@@ -57,13 +64,10 @@
            (when objects
              (format stream ".~%"))
            (terpri stream)))
-    (show-field "Title" (title object))
-    (show-field "Composer" (composer object))
-    (show-field "Lyrics" (lyrics-author object))
-    (when-let ((date (publishing-date object)))
-      (show-field "Published" (local-time:format-timestring
-                               nil date
-                               :format local-time:+iso-8601-date-format+)))
+    (show-field "Title" (title object) 'song-title)
+    (show-field "Composer" (composer object) 'song-composer)
+    (show-field "Lyrics" (lyrics-author object) 'song-lyrics)
+    (show-field "Published" (publishing-date object) 'song-date)
     (terpri stream)
     (list-group "Instruments" (instruments object) 'instrument)
     (list-group "Parts" (parts object) 'part)
@@ -99,8 +103,23 @@
 
 (clim:define-presentation-method clim:present
     ((object parts-view) (type parts-view) stream (view song-parts-view-view) &key)
-  (format stream "~a (~d)" (name object) (length (parts object))))
+  (loop for part in (parts object)
+        do (clim:present part 'part :stream stream
+                                    :view +song-parts-view-view+
+                                    :sensitive nil)))
 
 (clim:define-presentation-method clim:present
     ((object part) (type part) stream (view song-parts-view-view) &key)
-  (format stream "~a (~d)" (name object) (length (parts object))))
+  (format stream "~a~%" (name object))
+  (let ((height 75)
+        (width (clime:stream-line-width stream)))
+    (if-let ((staves (staves object)))
+      (loop for staff in staves do
+        (clim:with-room-for-graphics
+            (stream :first-quadrant t :height height :move-cursor t)
+          (clim:draw-rectangle* stream 0 0 width height :filled nil))
+        (fresh-line stream)
+        (clim:stream-increment-cursor-position stream 0 20))
+      (princ "(no staves)" stream))
+    (fresh-line stream)
+    (clim:stream-increment-cursor-position stream 0 20)))
