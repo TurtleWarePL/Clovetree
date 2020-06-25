@@ -8,8 +8,9 @@
 
 (clim:define-application-frame clovetree ()
   ((songs :initarg :songs :accessor songs)
-   (current-song :accessor current-song))
-  (:geometry :width 800 :height 600)
+   (current-song :accessor current-song)
+   (parts-object :accessor parts-object))
+  (:geometry :width 1080 :height 600)
   (:menu-bar menubar-command-table)
   (:panes (app song-main-pane :display-function #'display)
           (int :interactor)
@@ -35,7 +36,15 @@
       (mapc (lambda (song) (check-type song song)) songs)
       (setf songs (list (make-instance 'song))
             (songs frame) songs))
+  (setf (slot-value frame 'current-song) nil)
   (setf (current-song frame) (first songs)))
+
+(defmethod (setf current-song) :around (new-val (frame clovetree))
+  (let ((song (current-song frame)))
+    (unless (eq song new-val)
+      (call-next-method)
+      (setf (parts-object frame) (or (first (views new-val))
+                                     (parts new-val))))))
 
 
 ;;; Commands
@@ -106,8 +115,11 @@
                                   :single-box t))
      :stream output
      :separator #\newline)
-    (setf (current-song frame)
-          (clim:accept 'song))))
+    (setf (current-song frame) (clim:accept 'song))))
+
+(define-clovetree-command (com-show-parts :name t)
+    ((object t))
+  (setf (parts-object clim:*application-frame*) object))
 
 
 ;;; Menu
@@ -126,6 +138,13 @@
                                  #+ (or) ("Help" :command nil)))
 
 
+;;; Translators
+(clim:define-presentation-to-command-translator tr-show-parts
+    (parts-view-oid com-show-parts clovetree)
+    (object)
+  (list object))
+
+
 ;;; Display methods
 
 (defmethod display ((frame clovetree) (stream song-info-pane))
@@ -135,7 +154,12 @@
                 :single-box t))
 
 (defmethod display ((frame clovetree) (stream song-main-pane))
-  (princ "La la la." stream))
+  (if-let ((object (parts-object frame)))
+    (clim:present object
+                  (clim:presentation-type-of object)
+                  :stream stream
+                  :view +song-parts-view-view+)
+    (princ "La la la." stream)))
 
 
 (defun run (&rest args &key songs new-process)
@@ -145,14 +169,3 @@
     (if new-process
         (clim-sys:make-process (lambda () (clim:run-frame-top-level frame)))
         (clim:run-frame-top-level frame))))
-
-#+ (or)
-(run :songs (list (make-instance 'song :title "Say you love me"
-                                       :composer "Mandy"
-                                       :parts '(part1 part2))
-                  (make-instance 'song :title "Say you hate me"
-                                       :composer "Lucy")
-                  (make-instance 'song :title "Don't say nothing"
-                                       :composer "Tatsumi")
-                  (make-instance 'song :title "Don't say no thing"
-                                       :composer "Akame")))
