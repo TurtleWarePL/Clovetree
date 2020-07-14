@@ -121,15 +121,44 @@
 (clim:define-presentation-method clim:present
     ((object part) (type part) stream (view song-parts-view-view) &key)
   (format stream "~a~%" (name object))
-  (let ((height 75)
-        (width (clime:stream-line-width stream)))
-    (if-let ((staves (staves object)))
-      (loop for staff in staves do
-        (clim:with-room-for-graphics
-            (stream :first-quadrant t :height height :move-cursor t)
-          (clim:draw-rectangle* stream 0 0 width height :filled nil))
-        (fresh-line stream)
-        (clim:stream-increment-cursor-position stream 0 20))
-      (princ "(no staves)" stream))
-    (fresh-line stream)
-    (clim:stream-increment-cursor-position stream 0 20)))
+  (let ((staves (staves object)))
+    (cond ((length= 0 staves)
+           (princ "(no staves)" stream))
+          ((length= 1 staves)
+           (clim:present (first staves) 'staff
+                         :stream stream
+                         :view +song-parts-view-view+))
+          ((length= 2 staves)
+           (clim:present staves 'grand-staff
+                         :stream stream
+                         :view +song-parts-view-view+))
+          #+ (or)
+          ((length= 3 staves)
+           ;; Grand staff with 1 extra (i.e organ + pedals). That said
+           ;; our abstraction puts pedals as a separate instrument and
+           ;; this should never happen.
+           (clim:present staves 'grand-staff*
+                         :stream stream
+                         :view +song-parts-view-view+))
+          (t
+           (princ "(error: too many staves)"))))
+  (fresh-line stream)
+  (clim:stream-increment-cursor-position stream 0 20))
+
+(clim:define-presentation-method clim:present
+    ((object staff) (type staff) stream (view song-parts-view-view) &key)
+  (let* ((height 75)
+         (width (clime:stream-line-width stream)))
+    (clim:with-room-for-graphics
+        (stream :first-quadrant nil :height height :move-cursor t)
+      (clim:draw-rectangle* stream 0 0 width height :filled nil))))
+
+(clim:define-presentation-method clim:present
+    ((object list) (type grand-staff) stream (view song-parts-view-view) &key)
+  (let* ((height 75))
+    (clim:with-room-for-graphics
+        (stream :first-quadrant nil :move-cursor nil)
+      (clim:draw-line* stream 10 10 10 (- (* (length object) height) 10)))
+    (loop for staff in object
+          do (clim:present staff 'staff :stream stream :view view))))
+
