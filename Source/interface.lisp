@@ -176,12 +176,17 @@
                     (,ptype ,cmd clovetree :documentation ,doc :gesture nil)
                     (object)
                   (list object
-                        (clim:accept 'string :prompt ,prompt
-                                     :delimiter-gestures '(:enter)))))))
-  (change-song-translator song-title title "Change song title" "Title")
-  (change-song-translator song-composer composer "Change song composer" "Composer")
-  (change-song-translator song-lyrics lyrics-author "Change song lyrics author" "Lyrics author")
-  (change-song-translator song-date publishing-date "Change song publishing data" "Publishing date"))
+                        (clim:accepting-values ()
+                          (clim:accept 'string :prompt ,prompt
+                                               :delimiter-gestures '(:enter))))))))
+  (change-song-translator song-title title
+                          "Change the song title" "Title")
+  (change-song-translator song-composer composer
+                          "Change the song composer" "Composer")
+  (change-song-translator song-lyrics lyrics-author
+                          "Change the song lyrics author" "Lyrics author")
+  (change-song-translator song-date publishing-date
+                          "Change the song publishing data" "Publishing date"))
 
 (clim:define-presentation-to-command-translator tr-remove-song-lyrics-author
     (song-lyrics com-change-song-lyrics-author clovetree
