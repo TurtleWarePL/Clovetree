@@ -115,7 +115,12 @@
                                   :single-box t))
      :stream output
      :separator #\newline)
-    (setf (current-song frame) (clim:accept 'song))))
+    (terpri output)
+    (clim:with-input-context ('song :override t)
+        (object)
+        (handler-case (loop (clim:stream-read-gesture output))
+          (clim:abort-gesture ()))
+      (song (setf (current-song frame) object)))))
 
 (define-clovetree-command (com-show-parts :name t)
     ((object t))
