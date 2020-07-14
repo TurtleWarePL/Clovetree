@@ -76,6 +76,15 @@
   (let ((path (clim:accept 'pathname :prompt "Song pathname")))
     (format *standard-input* "Implement me ~s!" path)))
 
+(define-clovetree-command (com-close-song :name t)
+    ()
+  (let* ((frame clim:*application-frame*)
+         (new-songs (remove (current-song frame) (songs frame))))
+    (setf (songs frame) new-songs)
+    (if new-songs
+        (setf (current-song frame) (first new-songs))
+        (com-new-song))))
+
 ;;; Normally we'd have arguments as arguments for the command, but the
 ;;; prompt is erased when in the parts-view-view window. McCLIM bug.
 (define-clovetree-command (com-save-song :name t)
