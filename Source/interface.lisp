@@ -170,6 +170,38 @@
   (change-song-translator song-lyrics lyrics-author "Change song lyrics author" "Lyrics author")
   (change-song-translator song-date publishing-date "Change song publishing data" "Publishing date"))
 
+(clim:define-presentation-to-command-translator tr-remove-song-lyrics-author
+    (song-lyrics com-change-song-lyrics-author clovetree
+                 :documentation "Remove the song lyrics author" :gesture nil)
+    (object)
+  (list object nil))
+
+(clim:define-presentation-to-command-translator tr-remove-song-publishing-date
+    (song-date com-change-song-publishing-date clovetree
+               :documentation "Remove the song publishing data" :gesture nil)
+    (object)
+  (list object nil))
+
+(clim:define-presentation-to-command-translator tr-add-instrument
+    (instruments-group com-add-instrument clovetree
+                       :documentation "Add an instrument"
+                       :gesture nil)
+    (object)
+  ())
+
+(clim:define-presentation-to-command-translator tr-add-part
+    (parts-group com-add-part clovetree
+                 :documentation "Add a part"
+                 :gesture nil)
+    (object)
+  `(,(clim:accept 'instrument)))
+
+(clim:define-presentation-to-command-translator tr-add-view
+    (views-group com-add-view clovetree
+                 :documentation "Add a view"
+                 :gesture nil)
+    (object)
+  ())
 
 
 ;;; Display methods
