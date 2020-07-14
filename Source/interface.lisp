@@ -131,6 +131,19 @@
   (change-song-command lyrics-author)
   (change-song-command publishing-date))
 
+(define-clovetree-command (com-add-instrument :name t)
+    ())
+
+(define-clovetree-command (com-add-part :name t)
+    ((instrument instrument)))
+
+(define-clovetree-command (com-add-view :name t)
+    ()
+  (clim:accept 'string :prompt "View name")
+  (clim:accept '(clim:sequence part)
+               :view +song-information-view+
+               :prompt "Parts"))
+
 
 ;;; Menu
 (clim:make-command-table 'file-command-table
