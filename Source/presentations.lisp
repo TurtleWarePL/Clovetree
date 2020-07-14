@@ -110,6 +110,9 @@
 
 (clim:define-presentation-method clim:present
     ((object parts-view) (type parts-view) stream (view song-parts-view-view) &key)
+  ;; Normally we'd use CLIM:FORMATTING-TABLE here, but it needs a lot
+  ;; of work to have it behave nicely (i.e to be able to center the
+  ;; text in the cell).
   (loop for part in (parts object)
         do (clim:present part 'part :stream stream
                                     :view +song-parts-view-view+
