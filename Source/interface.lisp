@@ -135,9 +135,10 @@
 ;;; Menu
 (clim:make-command-table 'file-command-table
                          :errorp nil
-                         :menu '(("New song"  :command com-new-song)
+                         :menu '(("New song" :command com-new-song)
                                  ("Load song" :command com-load-song)
                                  ("Save song" :command com-save-song)
+                                 ("Close song" :command com-close-song)
                                  (nil :divider t)
                                  ("Quit" :command com-quit)))
 
