@@ -14,22 +14,29 @@
 (defclass song-selection-view   (clim:gadget-view) ())
 (defclass song-parts-view-view  (clim:gadget-view) ())
 
-
-(defconstant +song-information-view+ (make-instance 'song-information-view))
-(defconstant +song-selection-view+   (make-instance 'song-selection-view))
-(defconstant +song-parts-view-view+  (make-instance 'song-parts-view-view))
+(defvar +song-information-view+ (make-instance 'song-information-view))
+(defvar +song-selection-view+   (make-instance 'song-selection-view))
+(defvar +song-parts-view-view+  (make-instance 'song-parts-view-view))
 
 
 ;;; Presentation types with CLOS classes
-(clim:define-presentation-type instrument ())
 (clim:define-presentation-type part ())
 (clim:define-presentation-type parts-view ())
+(clim:define-presentation-type instrument ())
+(clim:define-presentation-type staff ())
+(clim:define-presentation-type grand-staff ()
+  :inherit-from '(sequence staff)
+  :description "Combination of two staves (for a one performer)")
 
 ;;; Presentation types without CLOS classes
 (clim:define-presentation-type song-title    ())
 (clim:define-presentation-type song-composer ())
 (clim:define-presentation-type song-lyrics   ())
 (clim:define-presentation-type song-date     ())
+
+(clim:define-presentation-type instruments-group ())
+(clim:define-presentation-type parts-group       ())
+(clim:define-presentation-type views-group       ())
 
 #+ (or) ;; That would be cool if it did work.
 (clim:define-presentation-type parts-view-oid ()
@@ -40,7 +47,7 @@
   `(or part parts-view))
 
 
-;;; Presentation methods
+;;; Presentation methods for the presentation generic function PRESENT
 (clim:define-presentation-method clim:present
     ((object song) (type song) stream (view song-information-view) &key)
   (flet ((show-field (name value ptype)
