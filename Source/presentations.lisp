@@ -57,13 +57,13 @@
              (clim:with-text-face (stream :italic)
                (princ (or value "(empty)") stream)))
            (terpri stream))
-         (list-group (name objects presentation-type)
-           (clim:with-text-face (stream :bold)
-             (format stream "~a~%" name))
+         (list-group (name objects object-ptype group-ptype)
+           (clim:with-output-as-presentation (stream object group-ptype)
+             (clim:with-text-face (stream :bold)
+               (format stream "~a~%" name)))
            (clim:format-textual-list objects
                                      (lambda (object stream)
-                                       (clim:present object
-                                                     presentation-type
+                                       (clim:present object object-ptype
                                                      :stream stream
                                                      :view view
                                                      :single-box t))
@@ -71,14 +71,15 @@
            (when objects
              (format stream ".~%"))
            (terpri stream)))
-    (show-field "Title" (title object) 'song-title)
-    (show-field "Composer" (composer object) 'song-composer)
-    (show-field "Lyrics" (lyrics-author object) 'song-lyrics)
+    (show-field "Title"     (title object)           'song-title)
+    (show-field "Composer"  (composer object)        'song-composer)
+    (show-field "Lyrics"    (lyrics-author object)   'song-lyrics)
     (show-field "Published" (publishing-date object) 'song-date)
     (terpri stream)
-    (list-group "Instruments" (instruments object) 'instrument)
-    (list-group "Parts" (parts object) 'part)
-    (list-group "Views" (views object) 'parts-view)))
+    (list-group "Instruments" (instruments object) 'instrument 'instruments-group)
+    (list-group "Parts"       (parts object)       'part       'parts-group)
+    (list-group "Views"       (views object)       'parts-view 'views-group)
+    (terpri stream)))
 
 (clim:define-presentation-method clim:present
     ((object song) (type song) stream (view song-selection-view) &key)
@@ -99,7 +100,6 @@
     ((object parts-view) (type parts-view) stream (view song-information-view) &key)
   (format stream "~a (~d)" (name object) (length (parts object))))
 
-
 ;;; I'd rather have one method on the type PARTS-VIEW-OID defined as a
 ;;; class inheriting from the OR presentation type type instead, but
 ;;; the PRESENTATION-SUBTYPEP is wonky - it only special-cases
