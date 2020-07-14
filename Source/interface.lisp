@@ -232,7 +232,7 @@
                   :stream stream
                   :view +song-parts-view-view+
                   :sensitive nil)
-    (princ "La la la.~%" stream)))
+    (format stream "La la la.~%")))
 
 
 (defun run (&rest args &key songs new-process)
