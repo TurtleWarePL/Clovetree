@@ -16,22 +16,19 @@
   (:geometry :width 1200 :height 800)
   (:menu-bar menubar-command-table)
   (:pointer-documentation t)
-  (:panes (app song-main-pane :display-function #'display)
-          (int :interactor)
-          (tab song-info-pane :display-function #'display))
-  (:layouts (advanced
-             (clim:horizontally ()
-               (400 tab)
-               ;(clim:make-pane 'clime:box-adjuster-gadget)
-               (800 (clim:vertically ()
-                      (600 app)
-                      ;(clim:make-pane 'clime:box-adjuster-gadget)
-                      (200 int)))))
-            (simple
+  (:panes (tab song-info-pane :display-function #'display)
+          (app song-main-pane :display-function #'display)
+          (int :interactor))
+  (:layouts (simple
              (clim:horizontally (:height 800)
                (400 tab)
-               ;(clim:make-pane 'clime:box-adjuster-gadget)
-               (800 app)))))
+               (800 app)))
+            (advanced
+             (clim:horizontally ()
+               (400 tab)
+               (800 (clim:vertically ()
+                      (600 app)
+                      (200 int)))))))
 
 (defmethod initialize-instance :after ((frame clovetree) &key songs)
   (if songs
