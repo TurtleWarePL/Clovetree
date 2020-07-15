@@ -61,21 +61,29 @@
 
 ** Parts
 
-   The list of parts header is sensitive to the pointer gesture and may be
+   The "list of parts" header is sensitive to the pointer gesture and may be
    used to add a new part. When the translator is executed, the user is
    expected to enter the part name and select the instrument which will be
    associated with the new part. Existing parts may be selected and then the
    part will be shown in the pane on the right as if there were a view defined
    with this single part.
 
+*** DONE Implement add part
+
 ** Views
 
-   The list of views header is sensitive to the pointer gesture and may be
+   The "list of views" header is sensitive to the pointer gesture and may be
    used to add a new view. The user is expected to enter the part name and
    select parts which will be parts of this view. Existing views may be
    selected and then the parts view will be shown in the pane on the right.
 
-*** TODO add convenient method to accept a part sequence
+*** DONE Implement add view
+*** TODO use UPDATING-OUTPUT to avoid flicker
+    There are issue reports that the mechanism doesn't work correctly, that
+    would need to be confirmed though.
+*** TODO fix ACCEPTING-VALUES to be useful
+    Accepting values should be rewritten in McCLIM. A custom method is used
+    based on ~accept~ and ~with-input-context~. Considerably big task.
 
 * Part's view pane
 

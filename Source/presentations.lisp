@@ -85,7 +85,7 @@
   (format stream "Composer: ~a~%" (composer object)))
 
 (clim:define-presentation-method clim:present
-    ((object instrument) (type instrument) stream (view song-information-view) &key)
+    (object (type instrument) stream (view song-information-view) &key)
   (format stream "~a ~a" (name object) (key object)))
 
 (clim:define-presentation-method clim:present
