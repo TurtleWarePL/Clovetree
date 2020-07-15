@@ -38,10 +38,6 @@
 (clim:define-presentation-type parts-group       ())
 (clim:define-presentation-type views-group       ())
 
-#+ (or) ;; That would be cool if it did work.
-(clim:define-presentation-type parts-view-oid ()
-  :inherit-from `(or part parts-view))
-
 ;;; Presentation type abbreviations
 (clim:define-presentation-type-abbreviation parts-view-oid ()
   `(or part parts-view))
@@ -49,7 +45,7 @@
 
 ;;; Presentation methods for the presentation generic function PRESENT
 (clim:define-presentation-method clim:present
-    ((object song) (type song) stream (view song-information-view) &key)
+    (object (type song) stream (view song-information-view) &key)
   (flet ((show-field (name value ptype)
            (clim:with-output-as-presentation (stream object ptype :single-box t)
              (clim:with-text-face (stream :bold)
@@ -82,7 +78,7 @@
     (terpri stream)))
 
 (clim:define-presentation-method clim:present
-    ((object song) (type song) stream (view song-selection-view) &key)
+    (object (type song) stream (view song-selection-view) &key)
   (format stream "Title: ~a~%" (title object))
   (format stream "Composer: ~a~%" (composer object)))
 
@@ -91,25 +87,17 @@
   (format stream "~a ~a" (name object) (key object)))
 
 (clim:define-presentation-method clim:present
-    ((object part) (type part) stream (view song-information-view) &key)
+    (object (type part) stream (view song-information-view) &key)
   (format stream "~a (" (name object))
   (clim:present (instrument object) 'instrument :stream stream :view view)
   (format stream ")"))
 
 (clim:define-presentation-method clim:present
-    ((object parts-view) (type parts-view) stream (view song-information-view) &key)
+    (object (type parts-view) stream (view song-information-view) &key)
   (format stream "~a (~d)" (name object) (length (parts object))))
 
-;;; I'd rather have one method on the type PARTS-VIEW-OID defined as a
-;;; class inheriting from the OR presentation type type instead, but
-;;; the PRESENTATION-SUBTYPEP is wonky - it only special-cases
-;;; presentation type specifiers which start with symbols OR and AND
-;;; instead of checking the specifier metaclass. There is an elaborate
-;;; explanation in the source code why it is like this. Grokking the
-;;; presentation type system is a fight for another day.
-
 (clim:define-presentation-method clim:present
-    ((object parts-view) (type parts-view) stream (view song-parts-view-view) &key)
+    (object (type parts-view) stream (view song-parts-view-view) &key)
   ;; Normally we'd use CLIM:FORMATTING-TABLE here, but it needs a lot
   ;; of work to have it behave nicely (i.e to be able to center the
   ;; text in the cell).
@@ -119,7 +107,7 @@
                                     :sensitive nil)))
 
 (clim:define-presentation-method clim:present
-    ((object part) (type part) stream (view song-parts-view-view) &key)
+    (object (type part) stream (view song-parts-view-view) &key)
   (format stream "~a~%" (name object))
   (let ((staves (staves object)))
     (cond ((length= 0 staves)
@@ -146,7 +134,7 @@
   (clim:stream-increment-cursor-position stream 0 20))
 
 (clim:define-presentation-method clim:present
-    ((object staff) (type staff) stream (view song-parts-view-view) &key)
+    (object (type staff) stream (view song-parts-view-view) &key)
   (let* ((height 75)
          (width (clime:stream-line-width stream)))
     (clim:with-room-for-graphics
@@ -154,7 +142,7 @@
       (clim:draw-rectangle* stream 0 0 width height :filled nil))))
 
 (clim:define-presentation-method clim:present
-    ((object list) (type grand-staff) stream (view song-parts-view-view) &key)
+    (object (type grand-staff) stream (view song-parts-view-view) &key)
   (let* ((height 75))
     (clim:with-room-for-graphics
         (stream :first-quadrant nil :move-cursor nil)
