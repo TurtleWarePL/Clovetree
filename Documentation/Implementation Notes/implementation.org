@@ -1,0 +1,87 @@
+#+title: Implementation notes
+
+* Starting the application
+
+  #+BEGIN_SRC lisp
+    (clovetree:run :songs <list> :new-process t)
+  #+END_SRC
+
+  ~Clovetree~ may be started with (very basic) sample data:
+
+  #+BEGIN_SRC lisp
+    (asdf:load-system "clovetree-test")
+  #+END_SRC
+
+* Main application screen
+
+  Application has two layouts:
+
+  - simple :: information pane and part's view view
+  - advanced :: same as above + the interactor
+
+  User may switch between layouts with a gesture ~C-n~.
+
+  #+caption: Advanced mode
+  [[./main-view.png][Advanced mode screenshot]]
+
+  The application menu has following commands:
+
+  - File :: new song, load song, save song, close song and quit
+  - Song :: allows selecting in the left pane a song to display
+
+** TODO implement load and save
+** TODO track the song changes (no need to save an unmodified song)
+** TODO when loading from files track the file (to avoid multiple load)
+
+* Information pane
+
+  The pane on the left is used to display information about the song: the
+  title, the composer, lyrics and the publication date. Below that there is
+  the list of instruments, the list of parts and the list of views.
+
+** Song information
+
+   Song information fields may be edited by clicking right button of the
+   pointer on the field (and selecting the command in a menu). Each field is a
+   string (the lyrics author and the publishing date may be null).
+
+*** DONE add "remove" command to lyrics author and publishing date
+*** DONE add better input editing accept method for these fields 
+
+** Instruments
+
+   The list of instruments header is sensitive to the pointer gesture and may
+   be used to add a new instrument. Instruments are not input sensitive by
+   default, but when adding an instrument to the part they may be selected.
+
+*** TODO implement adding the instrument
+
+** Parts
+
+   The list of parts header is sensitive to the pointer gesture and may be
+   used to add a new part. When the translator is executed, the user is
+   expected to enter the part name and select the instrument which will be
+   associated with the new part. Existing parts may be selected and then the
+   part will be shown in the pane on the right as if there were a view defined
+   with this single part.
+
+** Views
+
+   The list of views header is sensitive to the pointer gesture and may be
+   used to add a new view. The user is expected to enter the part name and
+   select parts which will be parts of this view. Existing views may be
+   selected and then the parts view will be shown in the pane on the right.
+
+*** TODO add convenient method to accept a part sequence
+
+* Part's view pane
+
+  The pane on the right is used to display staves. Each part may have one or
+  many staves. When it has more than one staff then they are displayed with
+  the presentation type ~grand-staff~, otherwise it is just ~staff~.
+  Currently each staff is drawn as an empty rectangle and a grand staff has a
+  vertical line spanning all staves associated with it. The part name is
+  displayed above each part.
+
+** TODO add interactions add/remove parts
+** TODO add interactions to modify a part
