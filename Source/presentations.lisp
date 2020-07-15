@@ -14,9 +14,17 @@
 (defclass song-selection-view   (clim:gadget-view) ())
 (defclass song-parts-view-view  (clim:gadget-view) ())
 
+(defclass new-instrument-view (song-information-view) ())
+(defclass new-part-view       (song-information-view) ())
+(defclass new-parts-view-view (song-information-view) ())
+
 (defvar +song-information-view+ (make-instance 'song-information-view))
 (defvar +song-selection-view+   (make-instance 'song-selection-view))
 (defvar +song-parts-view-view+  (make-instance 'song-parts-view-view))
+
+(defvar +new-instrument-view+ (make-instance 'new-instrument-view))
+(defvar +new-part-view+       (make-instance 'new-part-view))
+(defvar +new-parts-view-view+ (make-instance 'new-parts-view-view))
 
 
 ;;; Presentation types with CLOS classes
@@ -152,3 +160,127 @@
     (loop for staff in object
           do (clim:present staff 'staff :stream stream :view view))))
 
+
+;;; Presentation methods for ACCEPT
+
+(defclass song-info-pane (clim:application-pane) ()
+  (:default-initargs :text-margins '(:left (:absolute 15)
+                                     :top  (:absolute 10))))
+
+(defclass song-main-pane (clim:application-pane) ()
+  (:default-initargs :text-margins '(:left (:absolute 15)
+                                     :top  (:absolute 10)
+                                     :right (:absolute 770))))
+
+;;; FIXME normally this hack wouldn't be needed, but ACCEPT-1 goes through
+;;; Drei's input editing which assumes that during accept the window is never
+;;; cleared. We avoid that for our "specialized" methods.
+
+;;; FIXME this really should be using ACCEPTING-VALUES but that macro is
+;;; currently garbage in McCLIM.
+
+(defmethod clim:stream-accept ((stream song-info-pane) type
+                               &key view &allow-other-keys)
+  (if (member type '(part parts-view))
+      (clim:funcall-presentation-generic-function clim:accept type stream view)
+      (call-next-method)))
+
+(clim:define-presentation-method clim:accept
+    ((type instrument)
+     stream
+     (view new-instrument-view)
+     &key default default-type)
+  (declare (ignore default default-type))
+  (let (name key)
+    (clim:accepting-values ()
+      (setf name
+            (clim:accept 'string :prompt "Instrument name"))
+      (terpri)
+      (setf key
+            (clim:accept 'note
+                         :prompt "Key"
+                         :view clim:+option-pane-view+
+                         :default :c)))
+    (unless name
+      (setf name (format nil "~a" (gensym "i"))))
+    (make-instance 'instrument :name name :key key)))
+
+(clim:define-presentation-method clim:accept
+    ((type part) output (view new-part-view) &key default default-type)
+  (declare (ignore default default-type))
+  (let* ((frame clim:*application-frame*)
+         (name nil))
+    (setf name (or (clim:accept 'string :prompt "Part name")
+                   (format nil "~a" (gensym "p"))))
+    (clim:window-clear output)
+    (clim:with-drawing-options
+        (output :text-size :larger :text-face :bold)
+      (princ "Pick the instrument" output)
+      (terpri output)
+      (clim:stream-increment-cursor-position
+       output 0 (clim:stream-line-height output)))
+    (clim:format-textual-list
+     (instruments (current-song frame))
+     (lambda (object stream)
+       (clim:present object 'instrument :stream stream
+                                        :view +song-information-view+
+                                        :single-box t))
+     :stream output
+     :separator #\newline)
+    (terpri output)
+    (clim:with-input-context ('instrument :override t)
+        (object)
+        (handler-case (loop (clim:stream-read-gesture output))
+          (clim:abort-gesture ()))
+      (instrument
+       (make-instance 'part :instrument object :name name)))))
+
+(clim:define-presentation-method clim:accept
+    ((type parts-view) output (view new-parts-view-view) &key default default-type)
+  (declare (ignore default default-type))
+  (let* ((frame clim:*application-frame*)
+         (parts nil)
+         (name nil))
+    (setf name (or (clim:accept 'string :prompt "View name")
+                   (format nil "~a" (gensym "v"))))
+    (loop
+      (clim:window-clear output)
+      (clim:with-drawing-options
+          (output :text-size :larger :text-face :bold)
+        (princ "Select parts" output)
+        (terpri output)
+        (clim:stream-increment-cursor-position
+         output 0 (clim:stream-line-height output)))
+      (clim:format-textual-list
+       (parts (current-song frame))
+       (lambda (object stream)
+         (clim:with-drawing-options (stream :text-size :large
+                                            :ink (if (find object parts)
+                                                     clim:+dark-green+
+                                                     clim:+black+))
+           (clim:present object 'part :stream stream
+                                      :view +song-information-view+
+                                      :single-box t)))
+       :stream output
+       :separator #\newline)
+      (terpri output)
+      (terpri output)
+      (clim:with-output-as-gadget (output)
+        (clim:make-pane :push-button
+                        :label "Done"
+                        :activate-callback
+                        (lambda (gadget)
+                          (declare (ignore gadget))
+                          (return-from clim:accept
+                            (make-instance 'parts-view
+                                           :parts parts
+                                           :name name)))))
+      (clim:with-input-context ('part :override t)
+          (object)
+          (handler-case (loop (clim:stream-read-gesture output))
+            (clim:abort-gesture ()
+              (return-from clim:accept)))
+        (part
+         (if (find object parts)
+             (setf parts (delete object parts))
+             (push object parts)))))))

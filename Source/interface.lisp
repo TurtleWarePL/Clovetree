@@ -1,14 +1,5 @@
 (in-package #:clovetree-implementation)
 
-(defclass song-info-pane (clim:application-pane) ()
-  (:default-initargs :text-margins '(:left (:absolute 15)
-                                     :top  (:absolute 10))))
-
-(defclass song-main-pane (clim:application-pane) ()
-  (:default-initargs :text-margins '(:left (:absolute 15)
-                                     :top  (:absolute 10)
-                                     :right (:absolute 770))))
-
 (clim:define-application-frame clovetree ()
   ((songs :initarg :songs :accessor songs)
    (current-song :accessor current-song)
@@ -136,109 +127,21 @@
   (change-song-command lyrics-author)
   (change-song-command publishing-date))
 
-;;; FIXME this really should be ACCEPTING-VALUES call with some
-;;; specializations, but that macro is currently garbage in McCLIM.
 (define-clovetree-command (com-add-instrument :name t) ()
-  (let (name key)
-    (clim:accepting-values (*standard-input*)
-      (setf name
-            (clim:accept 'string
-                         :prompt "Instrument name"))
-      (terpri)
-      (setf key
-            (clim:accept 'note
-                         :prompt "Key"
-                         :view clim:+option-pane-view+
-                         :default :c)))
-    (unless name
-      (setf name (format nil "~a" (gensym "i"))))
-    (push (make-instance 'instrument :name name :key key)
-          (instruments (current-song clim:*application-frame*)))))
+  (when-let ((instrument (clim:accept 'instrument
+                                      :view +new-instrument-view+
+                                      :prompt nil)))
+    (push instrument (instruments (current-song clim:*application-frame*)))))
 
-;;; FIXME this really should be ACCEPTING-VALUES call with some
-;;; specializations, but that macro is currently garbage in McCLIM.
 (define-clovetree-command (com-add-part :name t) ()
-  (let* ((frame clim:*application-frame*)
-         (output (clim:find-pane-named frame 'tab))
-         (name nil))
-    (setf name (or (clim:accept 'string :prompt "Part name")
-                   (format nil "~a" (gensym "p"))))
-    (clim:window-clear output)
-    (clim:with-drawing-options
-        (output :text-size :larger :text-face :bold)
-      (princ "Pick the instrument" output)
-      (terpri output)
-      (clim:stream-increment-cursor-position
-       output 0 (clim:stream-line-height output)))
-    (clim:format-textual-list
-     (instruments (current-song frame))
-     (lambda (object stream)
-       (clim:present object 'instrument :stream stream
-                                        :view +song-information-view+
-                                        :single-box t))
-     :stream output
-     :separator #\newline)
-    (terpri output)
-    (clim:with-input-context ('instrument :override t)
-        (object)
-        (handler-case (loop (clim:stream-read-gesture output))
-          (clim:abort-gesture ()))
-      (instrument
-       (push (make-instance 'part :instrument object :name name)
-             (parts (current-song frame)))))))
+  (when-let ((part (clim:accept 'part :view +new-part-view+ :prompt nil)))
+    (push part (parts (current-song clim:*application-frame*)))))
 
-;;; FIXME this really should be ACCEPTING-VALUES call with some
-;;; specializations, but that macro is currently garbage in McCLIM.
 (define-clovetree-command (com-add-view :name t) ()
-  (let* ((frame clim:*application-frame*)
-         (output (clim:find-pane-named frame 'tab))
-         (parts nil)
-         (name nil))
-    (setf name (or (clim:accept 'string :prompt "View name")
-                   (format nil "~a" (gensym "v"))))
-    (loop named add-view-block
-          do (clim:window-clear output)
-             (clim:with-drawing-options
-                 (output :text-size :larger :text-face :bold)
-               (princ "Select parts" output)
-               (terpri output)
-               (clim:stream-increment-cursor-position
-                output 0 (clim:stream-line-height output)))
-             (clim:format-textual-list
-              (parts (current-song frame))
-              (lambda (object stream)
-                (clim:with-drawing-options (stream :text-size :large
-                                                   :ink (if (find object parts)
-                                                            clim:+dark-green+
-                                                            clim:+black+))
-                  (clim:present object 'part :stream stream
-                                             :view +song-information-view+
-                                             :single-box t)))
-              :stream output
-              :separator #\newline)
-             (terpri output)
-             (terpri output)
-             (clim:with-output-as-gadget (output)
-               (clim:make-pane :push-button
-                               :label "Done"
-                               :activate-callback
-                               (lambda (gadget)
-                                 (declare (ignore gadget))
-                                 (push (make-instance 'parts-view
-                                                      :parts parts
-                                                      :name name)
-                                       (views
-                                        (current-song frame)))
-                                 (return-from add-view-block))))
-             (clim:with-input-context ('part :override t)
-                 (object)
-                 (handler-case (loop (clim:stream-read-gesture output))
-                   (clim:abort-gesture ()
-                     (return-from add-view-block)))
-               (part
-                (if (find object parts)
-                    (setf parts (delete object parts))
-                    (push object parts)))))))
+  (when-let ((view (clim:accept 'parts-view
+                                :view +new-parts-view-view+
+                                :prompt nil)))
+    (push view (views (current-song clim:*application-frame*)))))
 
 
 ;;; Menu
