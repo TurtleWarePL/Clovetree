@@ -123,7 +123,7 @@
       (song (setf (current-song frame) object)))))
 
 (define-clovetree-command (com-show-parts :name t)
-    ((object t))
+    ((object parts-view-oid :gesture :select))
   (setf (parts-object clim:*application-frame*) object))
 
 (macrolet ((change-song-command (what)
@@ -168,11 +168,6 @@
 
 
 ;;; Translators
-(clim:define-presentation-to-command-translator tr-show-parts
-    (parts-view-oid com-show-parts clovetree
-                    :documentation "Show parts")
-    (object)
-  (list object))
 
 (macrolet ((change-song-translator (ptype what doc prompt)
              (let ((cmd (alexandria:symbolicate 'com-change-song- what))
