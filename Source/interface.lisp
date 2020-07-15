@@ -137,7 +137,22 @@
   (change-song-command publishing-date))
 
 (define-clovetree-command (com-add-instrument :name t)
-    ())
+    ()
+  (let (name key)
+    (clim:accepting-values (*standard-input*)
+      (setf name
+            (clim:accept 'string
+                         :prompt "Instrument name"))
+      (terpri)
+      (setf key
+            (clim:accept 'note
+                         :prompt "Key"
+                         :view clim:+option-pane-view+
+                         :default :c)))
+    (unless name
+      (setf name (format nil "~a" (gensym "i"))))
+    (push (make-instance 'instrument :name name :key key)
+          (instruments (current-song clim:*application-frame*)))))
 
 (define-clovetree-command (com-add-part :name t)
     ((instrument instrument)))

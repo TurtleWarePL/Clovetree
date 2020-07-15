@@ -17,8 +17,8 @@
                   (every (rcurry #'typep ',element-type) seq))))
     `(and sequence (satisfies ,name))))
 
-(deftype note ()
-  ;; sharp/flat pairs are equivalent to each other.
+;; sharp/flat pairs are equivalent to each other.
+(defvar *notes*
   `(member :c
            :c-sharp :d-flat
            :d
@@ -31,6 +31,8 @@
            :a
            :a-sharp :b-flat
            :b))
+
+(deftype note () *notes*)
 
 ;;; Number of semitones above the note C4.
 (defun note-offset (note &optional (octave 4))

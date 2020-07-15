@@ -50,11 +50,14 @@
 
 ** Instruments
 
-   The list of instruments header is sensitive to the pointer gesture and may
-   be used to add a new instrument. Instruments are not input sensitive by
+   The "list of instruments" header is sensitive to the pointer gesture and
+   may be used to add a new instrument. Instruments are not input sensitive by
    default, but when adding an instrument to the part they may be selected.
 
-*** TODO implement adding the instrument
+*** DONE implement adding the instrument
+    Drawbacks: ~accepting-values~ misbehaves when called directly from
+    command. I.e we can't align prompts, control default display of a default
+    string and much more. This macro needs a lot of work.
 
 ** Parts
 

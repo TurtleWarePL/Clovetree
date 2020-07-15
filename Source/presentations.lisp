@@ -42,6 +42,8 @@
 (clim:define-presentation-type-abbreviation parts-view-oid ()
   `(or part parts-view))
 
+(clim:define-presentation-type-abbreviation note () *notes*)
+
 
 ;;; Presentation methods for the presentation generic function PRESENT
 (clim:define-presentation-method clim:present
