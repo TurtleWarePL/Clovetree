@@ -262,52 +262,57 @@
       (instrument
        (make-instance 'part :instrument object :name name)))))
 
+(defun select-multiple-parts (frame output parts)
+  (loop
+    (clim:window-clear output)
+    (clim:with-drawing-options
+        (output :text-size :larger :text-face :bold)
+      (princ "Select parts" output)
+      (terpri output)
+      (clim:stream-increment-cursor-position
+       output 0 (clim:stream-line-height output)))
+    (clim:format-textual-list
+     (parts (current-song frame))
+     (lambda (object stream)
+       (clim:with-drawing-options (stream :text-size :large
+                                          :ink (if (find object parts)
+                                                   clim:+dark-green+
+                                                   clim:+black+))
+         (clim:present object 'part :stream stream
+                                    :view +song-information-view+
+                                    :single-box t)))
+     :stream output
+     :separator #\newline)
+    (terpri output)
+    (terpri output)
+    (clim:with-output-as-gadget (output)
+      (clim:make-pane :push-button
+                      :label "Done"
+                      :activate-callback
+                      (lambda (gadget)
+                        (declare (ignore gadget))
+                        (return-from select-multiple-parts
+                          (values parts t)))))
+    (clim:with-input-context ('part :override t)
+        (object)
+        (handler-case (loop (clim:stream-read-gesture output))
+          (clim:abort-gesture ()
+            (return-from select-multiple-parts
+             (values nil nil))))
+      (part
+       (if (find object parts)
+           (setf parts (delete object parts))
+           (push object parts))))))
+
 (clim:define-presentation-method clim:accept
     ((type parts-view) output (view new-parts-view-view) &key default default-type)
   (declare (ignore default default-type))
-  (let* ((frame clim:*application-frame*)
-         (parts nil)
-         (name nil))
+  (let ((frame clim:*application-frame*)
+        (parts nil)
+        (name nil))
     (setf name (or (clim:accept 'string :prompt "View name")
                    (format nil "~a" (gensym "v"))))
-    (loop
-      (clim:window-clear output)
-      (clim:with-drawing-options
-          (output :text-size :larger :text-face :bold)
-        (princ "Select parts" output)
-        (terpri output)
-        (clim:stream-increment-cursor-position
-         output 0 (clim:stream-line-height output)))
-      (clim:format-textual-list
-       (parts (current-song frame))
-       (lambda (object stream)
-         (clim:with-drawing-options (stream :text-size :large
-                                            :ink (if (find object parts)
-                                                     clim:+dark-green+
-                                                     clim:+black+))
-           (clim:present object 'part :stream stream
-                                      :view +song-information-view+
-                                      :single-box t)))
-       :stream output
-       :separator #\newline)
-      (terpri output)
-      (terpri output)
-      (clim:with-output-as-gadget (output)
-        (clim:make-pane :push-button
-                        :label "Done"
-                        :activate-callback
-                        (lambda (gadget)
-                          (declare (ignore gadget))
-                          (return-from clim:accept
-                            (make-instance 'parts-view
-                                           :parts parts
-                                           :name name)))))
-      (clim:with-input-context ('part :override t)
-          (object)
-          (handler-case (loop (clim:stream-read-gesture output))
-            (clim:abort-gesture ()
-              (return-from clim:accept)))
-        (part
-         (if (find object parts)
-             (setf parts (delete object parts))
-             (push object parts)))))))
+    (multiple-value-bind (parts ok)
+        (select-multiple-parts frame output parts)
+      (and ok
+           (make-instance 'parts-view :parts parts :name name)))))

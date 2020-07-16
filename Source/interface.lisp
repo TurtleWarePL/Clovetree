@@ -93,7 +93,12 @@
     (setf (current-song clim:*application-frame*) song)))
 
 (define-clovetree-command (com-show-parts :name t)
-    ((object parts-view-oid :gesture :select))
+    ((object parts-view-oid
+             :gesture
+             ;; FIXME internal symbol (see McCLIM#1034)
+             (:select :tester ((object presentation)
+                               (eq (climi::presentation-view presentation)
+                                   +song-information-view+)))))
   (setf (parts-object clim:*application-frame*) object))
 
 (macrolet ((change-song-command (what)
@@ -208,8 +213,7 @@
     (clim:present object
                   (clim:presentation-type-of object)
                   :stream stream
-                  :view +song-parts-view-view+
-                  :sensitive nil)
+                  :view +song-parts-view-view+)
     (format stream "La la la.~%")))
 
 
