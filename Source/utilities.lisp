@@ -34,6 +34,12 @@
 
 (deftype note () *notes*)
 
+(defvar *staff-types*
+  `(member :five-line :percussion #|:guitar-tab :drum|#))
+
+(deftype staff-type () *staff-types*)
+
+
 ;;; Number of semitones above the note C4.
 (defun note-offset (note &optional (octave 4))
   (+ (ecase note

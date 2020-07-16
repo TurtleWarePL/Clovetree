@@ -54,6 +54,7 @@
   `(or part parts-view))
 
 (clim:define-presentation-type-abbreviation note () *notes*)
+(clim:define-presentation-type-abbreviation staff-type () *staff-types*)
 
 
 ;;; Presentation methods for the presentation generic function PRESENT
@@ -121,7 +122,8 @@
 
 (clim:define-presentation-method clim:present
     (object (type part) stream (view song-parts-view-view) &key)
-  (format stream "~a~%" (name object))
+  (princ (name object) stream)
+  (terpri stream)
   (let ((staves (staves object)))
     (cond ((length= 0 staves)
            (princ "(no staves)" stream))
@@ -129,6 +131,12 @@
            (clim:present (first staves) 'staff
                          :stream stream
                          :view +song-parts-view-view+))
+          (t
+           (clim:present staves 'grand-staff
+                         :stream stream
+                         :view +song-parts-view-view+))
+          ;; It is not specified to add an upper limit to a number of staves.
+          #+ (or)
           ((length= 2 staves)
            (clim:present staves 'grand-staff
                          :stream stream
@@ -141,6 +149,7 @@
            (clim:present staves 'grand-staff*
                          :stream stream
                          :view +song-parts-view-view+))
+          #+ (or)
           (t
            (princ "(error: too many staves)"))))
   (fresh-line stream)
@@ -329,3 +338,23 @@
         (select-multiple-parts frame output parts)
       (when ok
         (setf (parts (parts-view view)) parts)))))
+
+(clim:define-presentation-method clim:accept
+    ((type staff)
+     stream
+     view
+     &key default default-type)
+  (declare (ignore view default default-type))
+  (let (name stype)
+    (clim:accepting-values ()
+      (setf name
+            (clim:accept 'string :prompt "Staff name"))
+      (terpri)
+      (setf stype
+            (clim:accept 'staff-type
+                         :prompt "Type"
+                         :view clim:+option-pane-view+
+                         :default (second *staff-types*))))
+    (unless name
+      (setf name (format nil "~a" (gensym "s"))))
+    (make-instance 'staff :name name :staff-type stype)))

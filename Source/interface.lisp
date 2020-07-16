@@ -148,6 +148,11 @@
   (setf (views (current-song clim:*application-frame*))
         (remove object (views (current-song clim:*application-frame*)))))
 
+(define-clovetree-command (com-add-staff :name "Add a staff" :menu t)
+    ((object part))
+  (when-let ((staff (clim:accept 'staff :prompt nil)))
+    (push staff (staves object))))
+
 
 ;;; Menu
 (clim:make-command-table 'file-command-table
@@ -216,6 +221,16 @@
 (clim:define-presentation-to-command-translator tr-del-part
     (part com-del-part clovetree
           :documentation "Delete a part"
+          :gesture nil
+          :tester ((object presentation)
+                   (eq (climi::presentation-view presentation)
+                       +song-information-view+)))
+    (object)
+  (list object))
+
+(clim:define-presentation-to-command-translator tr-add-staff
+    (part com-add-staff clovetree
+          :documentation "Add a staff"
           :gesture nil
           :tester ((object presentation)
                    (eq (climi::presentation-view presentation)

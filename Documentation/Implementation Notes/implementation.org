@@ -96,5 +96,5 @@
   vertical line spanning all staves associated with it. The part name is
   displayed above each part.
 
-** TODO add interactions add/remove parts
-** TODO add interactions to modify a part
+** DONE add interactions add/remove parts
+** DONE add interactions to modify a part
