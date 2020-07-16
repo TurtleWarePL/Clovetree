@@ -161,7 +161,9 @@
          (width (clime:stream-line-width stream)))
     (clim:with-room-for-graphics
         (stream :first-quadrant nil :height height :move-cursor t)
-      (clim:draw-rectangle* stream 0 0 width height :filled nil))))
+      (clim:draw-rectangle* stream 0 0 width height :filled nil)
+      (clim:draw-text* stream (name object)
+                       20 (/ height 2) :align-y :center))))
 
 (clim:define-presentation-method clim:present
     (object (type grand-staff) stream (view song-parts-view-view) &key)
