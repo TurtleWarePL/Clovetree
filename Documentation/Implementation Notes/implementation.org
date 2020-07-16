@@ -121,3 +121,9 @@
 
 ** DONE add interactions add/remove parts
 ** DONE add interactions to modify a part
+** TODO add a keyboard driven part modification module
+   Part has no internal representation of a buffer currently, so there is
+   nothing to modify. There is no implementation for "selecting" the current
+   part, because I'd like to do it cleanly after "click to focus" is sorted
+   out (see https://github.com/McCLIM/McCLIM/pull/851).
+** TODO implement rendering, they are only rectangles now
