@@ -17,9 +17,13 @@
 (defclass new-instrument-view (song-information-view) ())
 (defclass new-part-view       (song-information-view) ())
 (defclass new-parts-view-view (song-information-view) ())
+(defclass new-staff-view      (song-information-view) ())
 
 (defclass mod-parts-view-view (song-information-view)
   ((parts-view :type parts-view :accessor parts-view :initarg :parts-view)))
+
+(defclass mod-staff-view (song-information-view)
+  ((part :type part :accessor part :initarg :part)))
 
 (defvar +song-information-view+ (make-instance 'song-information-view))
 (defvar +song-selection-view+   (make-instance 'song-selection-view))
@@ -28,6 +32,7 @@
 (defvar +new-instrument-view+ (make-instance 'new-instrument-view))
 (defvar +new-part-view+       (make-instance 'new-part-view))
 (defvar +new-parts-view-view+ (make-instance 'new-parts-view-view))
+(defvar +new-staff-view+      (make-instance 'new-staff-view))
 
 
 ;;; Presentation types with CLOS classes
@@ -174,6 +179,10 @@
     (loop for staff in object
           do (clim:present staff 'staff :stream stream :view view))))
 
+(clim:define-presentation-method clim:present
+    (object (type staff) stream (view mod-staff-view) &key)
+  (format stream "~A" (name object)))
+
 
 ;;; Presentation methods for ACCEPT
 
@@ -195,7 +204,7 @@
 
 (defmethod clim:stream-accept ((stream song-info-pane) type
                                &key view &allow-other-keys)
-  (if (member type '(part song parts-view))
+  (if (member type '(part song parts-view staff grand-staff))
       (clim:funcall-presentation-generic-function clim:accept type stream view)
       (call-next-method)))
 
@@ -344,7 +353,7 @@
 (clim:define-presentation-method clim:accept
     ((type staff)
      stream
-     view
+     (view new-staff-view)
      &key default default-type)
   (declare (ignore view default default-type))
   (let (name stype)
@@ -360,3 +369,56 @@
     (unless name
       (setf name (format nil "~a" (gensym "s"))))
     (make-instance 'staff :name name :staff-type stype)))
+
+;;; kludge?
+(define-condition staff-condition ()
+  ((staff :initarg :staff :reader staff)
+   (action :initarg :action :reader action)))
+
+(clim:define-presentation-method clim:accept
+    ((type staff)
+     output
+     (view mod-staff-view)
+     &key default default-type)
+  (declare (ignore default default-type))
+  (let* ((part (part view))
+         (old-staves (copy-list (staves part))))
+    (loop
+      (handler-case
+          (progn (clim:window-clear output)
+                 (clim:with-drawing-options
+                     (output :text-size :larger :text-face :bold)
+                   (princ "Part's staves" output)
+                   (terpri output)
+                   (clim:stream-increment-cursor-position
+                    output 0 (clim:stream-line-height output)))
+                 (clim:format-textual-list
+                  (staves part)
+                  (lambda (object stream)
+                    (clim:present object 'staff :stream stream
+                                                :view view
+                                                :single-box t))
+                  :stream output
+                  :separator #\newline)
+                 (terpri output)
+                 (clim:with-input-context ('staff :override t)
+                     (object)
+                     (handler-case (loop (clim:stream-read-gesture output))
+                       (clim:abort-gesture ()
+                         (setf (staves part) old-staves)
+                         (return-from clim:accept nil)))
+                   (staff
+                    (return-from clim:accept object))))
+        (staff-condition (c)
+          (let ((object (staff c))
+                (staves (staves part)))
+            (ecase (action c)
+              (:up
+               (let ((pos (position object staves)))
+                 (rotatef (nth pos staves) (nth (1- pos) staves))))
+              (:down
+               (let ((pos (position object staves)))
+                 (rotatef (nth pos staves) (nth (1+ pos) staves))))
+              (:delete
+               (setf (staves part)
+                     (delete object staves))))))))))

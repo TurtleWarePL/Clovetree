@@ -9,7 +9,7 @@
   ~Clovetree~ may be started with (very basic) sample data:
 
   #+BEGIN_SRC lisp
-    (asdf:load-system "clovetree-test")
+    (asdf:load-system "clovetree-test" :force t)
   #+END_SRC
 
 * Main application screen
@@ -24,10 +24,13 @@
   #+caption: Advanced mode
   [[./main-view.png][Advanced mode screenshot]]
 
-  The application menu has following commands:
+  The application menu has the following commands:
 
   - File :: new song, load song, save song, close song and quit
   - Song :: allows selecting in the left pane a song to display
+
+  Load song and save song are not implemented, because the internal data
+  format is not specified yet.
 
 ** TODO implement load and save
 ** TODO track the song changes (no need to save an unmodified song)
@@ -37,7 +40,8 @@
 
   The pane on the left is used to display information about the song: the
   title, the composer, lyrics and the publication date. Below that there is
-  the list of instruments, the list of parts and the list of views.
+  the list of instruments, the list of parts and the list of views. The pane
+  is also used to query data from the user.
 
 ** Song information
 
@@ -47,6 +51,7 @@
 
 *** DONE add "remove" command to lyrics author and publishing date
 *** DONE add better input editing accept method for these fields 
+*** TODO add text style for the song
 
 ** Instruments
 
@@ -66,10 +71,28 @@
    expected to enter the part name and select the instrument which will be
    associated with the new part. Existing parts may be selected and then the
    part will be shown in the pane on the right as if there were a view defined
-   with this single part.
+   with this single part. In the menu under right pointer button there are
+   also options to delete the part.
 
+   Moreover in the menu there are options to add and delete a staff. To edit a
+   staff click with the right mouse pointer on the part in the information
+   pane (left pane) and select the command "Modify staves". A list of staves
+   will be displayed and each will have an action under right mouse pointer
+   to:
+
+  - move staff up (unless the first one)
+  - move staff down (unless the last one)
+  - delete staff
+
+  Select any staff with left mouse pointer to finish the dialog.
+
+*** TODO staff ordering should be implemented as dragging
+*** TODO deleting a staff is immediate operation
+    Mark "deleted" staves in red and allow "undeleting" 
+    - on the bright side, when we abort old staves are recovered
 *** DONE Implement add part
 *** DONE Implement del part
+*** DONE Implement add staff
 ** Views
 
    The "list of views" header is sensitive to the pointer gesture and may be

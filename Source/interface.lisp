@@ -150,8 +150,14 @@
 
 (define-clovetree-command (com-add-staff :name "Add a staff" :menu t)
     ((object part))
-  (when-let ((staff (clim:accept 'staff :prompt nil)))
+  (when-let ((staff (clim:accept 'staff :prompt nil :view +new-staff-view+)))
     (push staff (staves object))))
+
+(define-clovetree-command (com-mod-staff :name "Modify staves" :menu t)
+    ((object part))
+  (clim:accept 'staff
+               :prompt nil
+               :view (make-instance 'mod-staff-view :part object)))
 
 
 ;;; Menu
@@ -238,6 +244,16 @@
     (object)
   (list object))
 
+(clim:define-presentation-to-command-translator tr-mod-staff
+    (part com-mod-staff clovetree
+          :documentation "Modify staves"
+          :gesture nil
+          :tester ((object presentation)
+                   (eq (climi::presentation-view presentation)
+                       +song-information-view+)))
+    (object)
+  (list object))
+
 (clim:define-presentation-to-command-translator tr-add-view
     (views-group com-add-view clovetree
                  :documentation "Add a view"
@@ -264,6 +280,38 @@
                              +song-information-view+)))
     (object)
   (list object))
+
+(clim:define-presentation-action tr-staff-move-up
+    (staff nil clovetree
+           :documentation "Move staff up"
+           :gesture nil
+           :tester ((object presentation)
+                    (let ((view (climi::presentation-view presentation)))
+                      (and (typep view 'mod-staff-view)
+                           (not (eq object (first (staves (part view)))))))))
+    (object)
+  (signal 'staff-condition :staff object :action :up))
+
+(clim:define-presentation-action tr-staff-move-down
+    (staff nil clovetree
+           :documentation "Move staff down"
+           :gesture nil
+           :tester ((object presentation)
+                    (let ((view (climi::presentation-view presentation)))
+                      (and (typep view 'mod-staff-view)
+                           (not (eq object (first (last (staves (part view))))))))))
+    (object)
+  (signal 'staff-condition :staff object :action :down))
+
+(clim:define-presentation-action tr-staff-delete
+    (staff nil clovetree
+           :documentation "Delete staff"
+           :gesture nil
+           :tester ((object presentation)
+                    (typep (climi::presentation-view presentation)
+                           'mod-staff-view)))
+    (object)
+  (signal 'staff-condition :staff object :action :delete))
 
 
 ;;; Display methods
