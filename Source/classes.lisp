@@ -70,7 +70,7 @@
    (parts
     :type (sequence* part)
     :initarg :parts
-    :reader parts))
+    :accessor parts))
   (:default-initargs :name "(a view)"
                      :parts nil))
 

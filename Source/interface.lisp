@@ -98,7 +98,8 @@
              ;; FIXME internal symbol (see McCLIM#1034)
              (:select :tester ((object presentation)
                                (eq (climi::presentation-view presentation)
-                                   +song-information-view+)))))
+                                   +song-information-view+))
+                      :documentation "Show parts")))
   (setf (parts-object clim:*application-frame*) object))
 
 (macrolet ((change-song-command (what)
@@ -121,11 +122,31 @@
   (when-let ((part (clim:accept 'part :view +new-part-view+ :prompt nil)))
     (push part (parts (current-song clim:*application-frame*)))))
 
+(define-clovetree-command (com-del-part :name t)
+    ((object part))
+  (let ((song (current-song clim:*application-frame*)))
+    (setf (parts song)
+          (remove object (parts song)))
+    (loop for view in (views song)
+          do (setf (parts view)
+                   (remove object (parts view))))))
+
 (define-clovetree-command (com-add-view :name t) ()
   (when-let ((view (clim:accept 'parts-view
                                 :view +new-parts-view-view+
                                 :prompt nil)))
     (push view (views (current-song clim:*application-frame*)))))
+
+(define-clovetree-command (com-mod-view :name "Modify view" :menu t)
+    ((object parts-view))
+  (clim:accept 'parts-view
+               :view (make-instance 'mod-parts-view-view :parts-view object)
+               :prompt nil))
+
+(define-clovetree-command (com-del-view :name "Delete view" :menu t)
+    ((object parts-view))
+  (setf (views (current-song clim:*application-frame*))
+        (remove object (views (current-song clim:*application-frame*)))))
 
 
 ;;; Menu
@@ -192,12 +213,39 @@
     (object)
   ())
 
+(clim:define-presentation-to-command-translator tr-del-part
+    (part com-del-part clovetree
+          :documentation "Delete a part"
+          :gesture nil)
+    (object)
+  (list object))
+
 (clim:define-presentation-to-command-translator tr-add-view
     (views-group com-add-view clovetree
                  :documentation "Add a view"
                  :gesture nil)
     (object)
   ())
+
+(clim:define-presentation-to-command-translator tr-mod-view
+    (parts-view com-mod-view clovetree
+                :documentation "Modify a view"
+                :gesture nil
+                :tester ((object presentation)
+                         (eq (climi::presentation-view presentation)
+                             +song-information-view+)))
+    (object)
+  (list object))
+
+(clim:define-presentation-to-command-translator tr-del-view
+    (parts-view com-del-view clovetree
+                :documentation "Delete a view"
+                :gesture nil
+                :tester ((object presentation)
+                         (eq (climi::presentation-view presentation)
+                             +song-information-view+)))
+    (object)
+  (list object))
 
 
 ;;; Display methods

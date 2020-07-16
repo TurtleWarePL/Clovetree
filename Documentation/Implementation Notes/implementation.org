@@ -69,7 +69,7 @@
    with this single part.
 
 *** DONE Implement add part
-
+*** DONE Implement del part
 ** Views
 
    The "list of views" header is sensitive to the pointer gesture and may be
@@ -78,6 +78,8 @@
    selected and then the parts view will be shown in the pane on the right.
 
 *** DONE Implement add view
+*** DONE Implement mod view
+*** DONE Implement del view
 *** TODO use UPDATING-OUTPUT to avoid flicker
     There are issue reports that the mechanism doesn't work correctly, that
     would need to be confirmed though.

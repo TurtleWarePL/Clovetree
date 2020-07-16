@@ -18,6 +18,9 @@
 (defclass new-part-view       (song-information-view) ())
 (defclass new-parts-view-view (song-information-view) ())
 
+(defclass mod-parts-view-view (song-information-view)
+  ((parts-view :type parts-view :accessor parts-view :initarg :parts-view)))
+
 (defvar +song-information-view+ (make-instance 'song-information-view))
 (defvar +song-selection-view+   (make-instance 'song-selection-view))
 (defvar +song-parts-view-view+  (make-instance 'song-parts-view-view))
@@ -316,3 +319,13 @@
         (select-multiple-parts frame output parts)
       (and ok
            (make-instance 'parts-view :parts parts :name name)))))
+
+(clim:define-presentation-method clim:accept
+    ((type parts-view) output (view mod-parts-view-view) &key default default-type)
+  (declare (ignore default default-type))
+  (let ((frame clim:*application-frame*)
+        (parts (parts (parts-view view))))
+    (multiple-value-bind (parts ok)
+        (select-multiple-parts frame output parts)
+      (when ok
+        (setf (parts (parts-view view)) parts)))))
