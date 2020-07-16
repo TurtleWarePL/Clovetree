@@ -14,15 +14,10 @@
 
 * Main application screen
 
-  Application has two layouts:
+  Application has two panes:
 
-  - simple :: information pane and part's view view
-  - advanced :: same as above + the interactor
-
-  User may switch between layouts with a gesture ~C-n~.
-
-  #+caption: Advanced mode
-  [[./main-view.png][Advanced mode screenshot]]
+  - song information pane / user input pane (left)
+  - part's view view pane
 
   The application menu has the following commands:
 

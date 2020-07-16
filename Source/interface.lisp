@@ -9,11 +9,12 @@
   (:pointer-documentation t)
   (:panes (tab song-info-pane :display-function #'display)
           (app song-main-pane :display-function #'display)
-          (int :interactor))
+          #+ (or) (int :interactor))
   (:layouts (simple
              (clim:horizontally (:height 800)
                (400 tab)
                (800 app)))
+            #+ (or)
             (advanced
              (clim:horizontally ()
                (400 tab)
@@ -27,7 +28,9 @@
       (setf songs (list (make-instance 'song))
             (songs frame) songs))
   (setf (slot-value frame 'current-song) nil)
-  (setf (current-song frame) (first songs)))
+  (setf (current-song frame) (first songs))
+  (setf (clim:frame-standard-input frame)
+        (clim:find-pane-named frame 'tab)))
 
 (defmethod (setf current-song) :around (new-val (frame clovetree))
   (let ((song (current-song frame)))
@@ -39,6 +42,7 @@
 
 ;;; Commands
 
+#+ (or)
 (define-clovetree-command (com-switch-layout :keystroke (#\n :control))
     ()
   (let* ((frame clim:*application-frame*)
