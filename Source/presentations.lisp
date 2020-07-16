@@ -209,7 +209,10 @@
       (call-next-method)))
 
 (clim:define-presentation-method clim:accept
-    ((type song) output (view song-information-view) &key &allow-other-keys)
+    ((type song)
+     (output song-info-pane)
+     (view song-information-view)
+     &key &allow-other-keys)
   (let ((frame clim:*application-frame*))
     (clim:window-clear output)
     (clim:with-drawing-options
@@ -237,7 +240,7 @@
 
 (clim:define-presentation-method clim:accept
     ((type instrument)
-     stream
+     (stream song-info-pane)
      (view new-instrument-view)
      &key default default-type)
   (declare (ignore default default-type))
@@ -256,7 +259,10 @@
     (make-instance 'instrument :name name :key key)))
 
 (clim:define-presentation-method clim:accept
-    ((type part) output (view new-part-view) &key default default-type)
+    ((type part)
+     (output song-info-pane)
+     (view new-part-view)
+     &key default default-type)
   (declare (ignore default default-type))
   (let* ((frame clim:*application-frame*)
          (name nil))
@@ -328,7 +334,10 @@
            (push object parts))))))
 
 (clim:define-presentation-method clim:accept
-    ((type parts-view) output (view new-parts-view-view) &key default default-type)
+    ((type parts-view)
+     (output song-info-pane)
+     (view new-parts-view-view)
+     &key default default-type)
   (declare (ignore default default-type))
   (let ((frame clim:*application-frame*)
         (parts nil)
@@ -341,7 +350,10 @@
            (make-instance 'parts-view :parts parts :name name)))))
 
 (clim:define-presentation-method clim:accept
-    ((type parts-view) output (view mod-parts-view-view) &key default default-type)
+    ((type parts-view)
+     (output song-info-pane)
+     (view mod-parts-view-view)
+     &key default default-type)
   (declare (ignore default default-type))
   (let ((frame clim:*application-frame*)
         (parts (parts (parts-view view))))
@@ -352,7 +364,7 @@
 
 (clim:define-presentation-method clim:accept
     ((type staff)
-     stream
+     (stream song-info-pane)
      (view new-staff-view)
      &key default default-type)
   (declare (ignore view default default-type))
@@ -377,7 +389,7 @@
 
 (clim:define-presentation-method clim:accept
     ((type staff)
-     output
+     (output song-info-pane)
      (view mod-staff-view)
      &key default default-type)
   (declare (ignore default default-type))
