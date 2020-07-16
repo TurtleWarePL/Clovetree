@@ -181,9 +181,36 @@
 
 (defmethod clim:stream-accept ((stream song-info-pane) type
                                &key view &allow-other-keys)
-  (if (member type '(part parts-view))
+  (if (member type '(part song parts-view))
       (clim:funcall-presentation-generic-function clim:accept type stream view)
       (call-next-method)))
+
+(clim:define-presentation-method clim:accept
+    ((type song) output (view song-information-view) &key &allow-other-keys)
+  (let ((frame clim:*application-frame*))
+    (clim:window-clear output)
+    (clim:with-drawing-options
+        (output :text-size :larger :text-face :bold)
+      (princ "Pick a song" output)
+      (terpri output)
+      (clim:stream-increment-cursor-position
+       output 0 (clim:stream-line-height output)))
+    (clim:format-textual-list
+     (songs frame)
+     (lambda (object stream)
+       (clim:present object 'song :stream stream
+                                  :view +song-selection-view+
+                                  :single-box t))
+     :stream output
+     :separator #\newline)
+    (terpri output)
+    (clim:with-input-context ('song :override t)
+        (object)
+        (handler-case (loop (clim:stream-read-gesture output))
+          (clim:abort-gesture ()
+            (return-from clim:accept nil)))
+      (song
+       (return-from clim:accept object)))))
 
 (clim:define-presentation-method clim:accept
     ((type instrument)

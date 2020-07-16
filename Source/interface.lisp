@@ -89,29 +89,8 @@
 
 (define-clovetree-command (com-pick-song :name t)
     ()
-  (let* ((frame clim:*application-frame*)
-         (output (clim:find-pane-named frame 'tab)))
-    (clim:window-clear output)
-    (clim:with-drawing-options
-        (output :text-size :larger :text-face :bold)
-      (princ "Pick a song" output)
-      (terpri output)
-      (clim:stream-increment-cursor-position
-       output 0 (clim:stream-line-height output)))
-    (clim:format-textual-list
-     (songs frame)
-     (lambda (object stream)
-       (clim:present object 'song :stream stream
-                                  :view +song-selection-view+
-                                  :single-box t))
-     :stream output
-     :separator #\newline)
-    (terpri output)
-    (clim:with-input-context ('song :override t)
-        (object)
-        (handler-case (loop (clim:stream-read-gesture output))
-          (clim:abort-gesture ()))
-      (song (setf (current-song frame) object)))))
+  (when-let ((song (clim:accept 'song :view +song-information-view+ :prompt nil)))
+    (setf (current-song clim:*application-frame*) song)))
 
 (define-clovetree-command (com-show-parts :name t)
     ((object parts-view-oid :gesture :select))
