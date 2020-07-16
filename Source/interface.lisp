@@ -216,7 +216,10 @@
 (clim:define-presentation-to-command-translator tr-del-part
     (part com-del-part clovetree
           :documentation "Delete a part"
-          :gesture nil)
+          :gesture nil
+          :tester ((object presentation)
+                   (eq (climi::presentation-view presentation)
+                       +song-information-view+)))
     (object)
   (list object))
 
