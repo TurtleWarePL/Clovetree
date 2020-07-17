@@ -4,11 +4,11 @@
 
 (defclass song-information ()
   ((title
-    :type string
+    :type (or null string)
     :initarg :title
     :accessor title)
    (composer
-    :type string
+    :type (or null string)
     :initarg :composer
     :accessor composer)
    (lyrics-author
