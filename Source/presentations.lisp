@@ -204,7 +204,7 @@
 
 (defmethod clim:stream-accept ((stream song-info-pane) type
                                &key view &allow-other-keys)
-  (if (member type '(part song parts-view staff grand-staff))
+  (if (member type '(part song instrument parts-view staff grand-staff))
       (clim:funcall-presentation-generic-function clim:accept type stream view)
       (call-next-method)))
 
